@@ -23,7 +23,7 @@ namespace Group2FinalProject
 			this.speed = speed;
 		}
 		public void updateStar()
-		{
+		{ 
 			position.X -= speed;
 		}
 	}

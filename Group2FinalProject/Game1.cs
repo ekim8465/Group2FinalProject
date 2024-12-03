@@ -12,16 +12,17 @@ namespace Group2FinalProject
 		private GraphicsDeviceManager _graphics;
 		private SpriteBatch _spriteBatch;
 
-		// Texture 및 Sound 관련 변수들
 		Texture2D shipSprite;
 		Texture2D asteroidSprite;
 		Texture2D spaceSprite;
 		Texture2D starSprite;
+		Texture2D bulletSprite; //
 		SpriteFont gameFont;
 		SpriteFont timerFont;
 
 		SoundEffect collisionSound;
-		SoundEffect boostSound;
+		SoundEffect asteroidSound;
+		SoundEffect shootingSound; //
 
 		Ship player = new Ship();
 		List<Asteroid> asteroids = new List<Asteroid>();
@@ -31,12 +32,12 @@ namespace Group2FinalProject
 		Random randomStars = new Random();
 
 		private TimeSpan elapsedTime;
-		private TimeSpan starElapsedTime; // 별 생성 시간 관리 변수 추가
+		private TimeSpan starElapsedTime; 
 		private int secondsElapsed;
 		private int score;
 
-		private double asteroidSpawnInterval = 2; // 소행성 생성 시간 간격
-		private double starSpawnInterval = 2; // 별 생성 시간 간격
+		private double asteroidSpawnInterval = 2; 
+		private double starSpawnInterval = 2; 
 
 		Controller controller = new Controller();
 
@@ -59,7 +60,7 @@ namespace Group2FinalProject
 			_graphics.ApplyChanges();
 
 			elapsedTime = TimeSpan.Zero;
-			starElapsedTime = TimeSpan.Zero; // 별 생성 시간을 초기화
+			starElapsedTime = TimeSpan.Zero; 
 			secondsElapsed = 0;
 			score = 0;
 
@@ -70,17 +71,18 @@ namespace Group2FinalProject
 		{
 			_spriteBatch = new SpriteBatch(GraphicsDevice);
 
-			// 텍스처 및 사운드 파일 로드
 			shipSprite = Content.Load<Texture2D>("ship");
 			asteroidSprite = Content.Load<Texture2D>("asteroid");
 			spaceSprite = Content.Load<Texture2D>("space");
 			starSprite = Content.Load<Texture2D>("star");
+			bulletSprite = Content.Load<Texture2D>("bullet");  //
 
 			gameFont = Content.Load<SpriteFont>("spaceFont");
 			timerFont = Content.Load<SpriteFont>("timerFont");
 
 			collisionSound = Content.Load<SoundEffect>("collisionSound");
-			boostSound = Content.Load<SoundEffect>("boostSound");
+			asteroidSound = Content.Load<SoundEffect>("asteroidSound");
+			shootingSound = Content.Load<SoundEffect>("shootingSound"); //
 		}
 
 		protected override void Update(GameTime gameTime)
@@ -102,7 +104,7 @@ namespace Group2FinalProject
 
 			secondsElapsed = controller.updateTime(gameTime);
 
-			// 소행성 업데이트 및 충돌 처리
+			// Asteroid Update and Collision Handling
 			for (int i = 0; i < asteroids.Count; i++)
 			{
 				var asteroid = asteroids[i];
@@ -114,11 +116,11 @@ namespace Group2FinalProject
 					score -= 3;
 
 					asteroids.RemoveAt(i);
-					i--; // 소행성 인덱스 수정
+					i--;
 						 //continue;
 				}
 
-				// 화면 밖으로 나가면 소행성 제거
+				// Remove Asteroids When They Move Off-Screen
 				if (asteroid.position.X < 0)
 				{
 					asteroids.RemoveAt(i);
@@ -126,7 +128,7 @@ namespace Group2FinalProject
 				}
 			}
 
-			// 별 생성 및 점수 처리
+			// Star Generation and Score Handling
 			for (int i = 0; i < stars.Count; i++)
 			{
 				var star = stars[i];
@@ -135,23 +137,23 @@ namespace Group2FinalProject
 				if (controller.didCollectHappen(player, star))
 				{
 					score += 3;
-					stars.RemoveAt(i); // 별을 제거
-					i--; // 별 인덱스 수정
+					stars.RemoveAt(i); 
+					i--; 
 
 
 					continue;
 				}
 
-				// 화면 밖으로 나가면 별 제거
+				// Remove Star When They Move Off-Screen
 				if (star.position.X < 0)
 				{
-					stars.RemoveAt(i); // 별을 제거
+					stars.RemoveAt(i); 
 					i--;
 				}
 			}
 
 			elapsedTime += gameTime.ElapsedGameTime;
-			starElapsedTime += gameTime.ElapsedGameTime; // 별 생성 시간을 업데이트
+			starElapsedTime += gameTime.ElapsedGameTime; // Update Star Spawn Time
 
 
 			if (secondsElapsed >= 30)
@@ -169,18 +171,18 @@ namespace Group2FinalProject
 				return;
 			}
 
-			// 소행성 생성
+			// Asteroids Spawn
 			if (elapsedTime.TotalSeconds >= asteroidSpawnInterval)
 			{
 				SpawnAsteroid();
 				elapsedTime = TimeSpan.Zero;
 			}
 
-			// 별 생성
+			// Star Spawn
 			if (starElapsedTime.TotalSeconds >= starSpawnInterval)
 			{
 				SpawnStar();
-				starElapsedTime = TimeSpan.Zero; // 별 생성 시간 초기화
+				starElapsedTime = TimeSpan.Zero; 
 			}
 
 			HandleStarCollection();
@@ -200,7 +202,7 @@ namespace Group2FinalProject
 
 		private void SpawnStar()
 		{
-			// 별은 화면 오른쪽에서 왼쪽으로 이동하도록 설정
+			// Set stars to move from right to left across the screen
 			float x = _graphics.PreferredBackBufferWidth;
 			float y = randomStars.Next(0, _graphics.PreferredBackBufferHeight);
 
@@ -215,11 +217,10 @@ namespace Group2FinalProject
 			{
 				var star = stars[i];
 
-				if (Vector2.Distance(player.position, star.position) < 30) // 별 수집 범위
+				if (Vector2.Distance(player.position, star.position) < 30) // Star Collection Range
 				{
 					score += star.value;
 					isBoostAvailable = true;
-					boostSound.Play();
 					stars.RemoveAt(i);
 					i--;
 				}
@@ -235,26 +236,26 @@ namespace Group2FinalProject
 			_spriteBatch.Draw(spaceSprite, new Vector2(0, 0), Color.White);
 			_spriteBatch.Draw(shipSprite, new Vector2(player.position.X - shipSprite.Width / 2, player.position.Y - shipSprite.Height / 2), Color.White);
 
-			// 별 그리기
+			// star
 			foreach (var star in stars)
 			{
-				// 별 위치 그리기
+				
 				_spriteBatch.Draw(starSprite, new Vector2(star.position.X - starSprite.Width / 2, star.position.Y - starSprite.Height / 2), Color.White);
 			}
 
-			// 소행성 그리기
+			// asteroid
 			foreach (var asteroid in asteroids)
 			{
 				_spriteBatch.Draw(asteroidSprite, new Vector2(asteroid.position.X - asteroidSprite.Width / 2, asteroid.position.Y - asteroidSprite.Height / 2), Color.White);
 			}
 
-			// 점수 표시
+			// score
 			_spriteBatch.DrawString(timerFont, "Score: " + score, new Vector2(_graphics.PreferredBackBufferWidth / 2, 10), Color.White);
 
-			// 타이머 표시
+			// timer
 			_spriteBatch.DrawString(timerFont, "Time: " + secondsElapsed, new Vector2(_graphics.PreferredBackBufferWidth / 2, 30), Color.White);
 
-			// 게임 오버/게임 승리 메시지
+			// message
 			if (isGameOver)
 			{
 				_spriteBatch.DrawString(gameFont, controller.gameEndScript(), new Vector2(_graphics.PreferredBackBufferWidth / 4 - 100, _graphics.PreferredBackBufferHeight / 2), Color.White);

@@ -28,7 +28,7 @@ namespace Group2FinalProject
 		{
 			elapsedTime += gameTime.ElapsedGameTime;
 
-			if (elapsedTime.TotalSeconds >= 1) //누적된 경과 시간을 초단위로 변환
+			if (elapsedTime.TotalSeconds >= 1) 
 			{
 				secondsElapsed++;
 				elapsedTime = TimeSpan.Zero;
@@ -42,8 +42,7 @@ namespace Group2FinalProject
 			int playerRadius = player.getRadius();
 			int astRadius = Asteroid.radius;
 			int distance = playerRadius + astRadius;
-
-			//충돌 여부만 판단 
+ 
 			return Vector2.Distance(player.position, asteroid.position) < distance;
 		}
 
@@ -53,7 +52,6 @@ namespace Group2FinalProject
 			int starRadius = Star.radius;
 			int distance = playerRadius + starRadius;
 
-			//충돌 여부만 판단 
 			return Vector2.Distance(player.position, star.position) < distance;
 		}
 

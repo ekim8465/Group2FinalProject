@@ -16,7 +16,6 @@ namespace Group2FinalProject
 		int baseSpeed = 2;
 		int radius = 0;
 
-		// 반지름 설정
 		public void setRadius(int radius)
 		{
 			this.radius = radius;
@@ -27,7 +26,6 @@ namespace Group2FinalProject
 			return this.radius;
 		}
 
-		// 우주선 이동 처리
 		public void MoveShip(KeyboardState state, bool boostActive)
 		{
 			int speed = boostActive ? baseSpeed * 2 : baseSpeed;
