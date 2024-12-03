@@ -82,7 +82,7 @@ namespace Group2FinalProject
 
 			collisionSound = Content.Load<SoundEffect>("collisionSound");
 			asteroidSound = Content.Load<SoundEffect>("asteroidSound");
-			shootingSound = Content.Load<SoundEffect>("shootingSound"); //
+			shootingSound = Content.Load<SoundEffect>("shootingSound");
 		}
 
 		protected override void Update(GameTime gameTime)
