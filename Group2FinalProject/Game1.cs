@@ -220,9 +220,13 @@ namespace Group2FinalProject
 				if (Vector2.Distance(player.position, star.position) < 30) // Star Collection Range
 				{
 					score += star.value;
-					isBoostAvailable = true;
+					
 					stars.RemoveAt(i);
 					i--;
+					if (score >= 5)
+					{
+						isBoostAvailable = true;
+					}
 				}
 			}
 		}

@@ -14,7 +14,7 @@ namespace Group2FinalProject
 	{
 		public Vector2 position;
 		private int speed;
-		public int value = 3; // Value of star for score increment
+		public int value = 1; // Value of star for score increment
 		static public int radius = 5;
 
 
