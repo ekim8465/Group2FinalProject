@@ -1,5 +1,5 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -12,14 +12,16 @@ namespace Group2FinalProject
         private int speed;          // Dynamic speed based on upgrades
         private int radius = 20;    // Initial radius of the ship
         private int upgradeLevel = 0;  // Tracks upgrade level
-        private int score = 0;          // Tracks score
+        private int score = 0;      // Tracks score
 
         private Texture2D shipTexture;  // For updating the ship texture on upgrade
+        private ContentManager contentManager;  // Reference to the ContentManager
 
-        public Ship(Texture2D initialTexture)
+        public Ship(Texture2D initialTexture, ContentManager content)
         {
             shipTexture = initialTexture;
             speed = baseSpeed;  // Start with the base speed
+            contentManager = content;  // Store the reference to ContentManager
         }
 
         // Getter and Setter for radius
@@ -65,16 +67,16 @@ namespace Group2FinalProject
             // Upgrade logic based on score thresholds
             if (score >= 40 && upgradeLevel < 2)  // Upgrade to Level 3 at score 40
             {
-                UpgradeShip(3, 4, "shipModel3");  // Speed, radius, and texture for model 3
+                UpgradeShip(4, 30, "ShipModel3");  // Speed, radius, and texture for model 3
             }
             else if (score >= 20 && upgradeLevel < 1)  // Upgrade to Level 2 at score 20
             {
-                UpgradeShip(3, 3, "shipModel2");  // Speed, radius, and texture for model 2
+                UpgradeShip(3, 25, "ShipModel2");  // Speed, radius, and texture for model 2
             }
         }
 
         // Upgrade the ship's stats
-        private void UpgradeShip(int newSpeed, int newRadius, string textureName)
+        public void UpgradeShip(int newSpeed, int newRadius, string textureName)
         {
             if (upgradeLevel < 2)  // Prevent upgrading beyond Level 3
             {
@@ -85,13 +87,13 @@ namespace Group2FinalProject
             }
         }
 
-        // Dummy method to simulate loading new textures (you can replace with actual texture loading)
+        // Method to load texture based on the texture name
         private Texture2D LoadTexture(string textureName)
         {
-            // In the actual implementation, load a texture based on the texture name
-            return null; // Replace with your actual texture loading code
+            return contentManager.Load<Texture2D>(textureName);
         }
 
+        // Get the current texture of the ship
         public Texture2D GetShipTexture()
         {
             return shipTexture;
