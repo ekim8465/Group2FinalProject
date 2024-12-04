@@ -15,8 +15,9 @@ namespace Group2FinalProject
         // Textures for the game
         Texture2D shipSprite;
         Texture2D asteroidSprite;
+        Texture2D planetSprite1;
+        Texture2D planetSprite2;
         Texture2D spaceSprite;
-        Texture2D starSprite;
         Texture2D bulletSprite;
 
         // Fonts
@@ -31,29 +32,24 @@ namespace Group2FinalProject
         // Player and other game objects
         Ship player;
         List<Asteroid> asteroids = new List<Asteroid>();
-        List<Star> stars = new List<Star>();
+        List<Planet> planets = new List<Planet>();
+        List<Bullet> bullets = new List<Bullet>();
 
-        Random randomAsteroids = new Random();
-        Random randomStars = new Random();
+        Random randomGenerator = new Random();
 
         // Time and score tracking
         private TimeSpan elapsedTime;
-        private TimeSpan starElapsedTime;
         private int secondsElapsed;
         private int score;
 
         // Spawn intervals
         private double asteroidSpawnInterval = 2;
-        private double starSpawnInterval = 2;
 
         // Game Controller
         Controller controller = new Controller();
 
         bool isGameOver = false;
-        bool isGameWon = false;
 
-        bool isBoostAvailable = false;  // Boost flag
-       
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -68,7 +64,6 @@ namespace Group2FinalProject
             _graphics.ApplyChanges();
 
             elapsedTime = TimeSpan.Zero;
-            starElapsedTime = TimeSpan.Zero;
             secondsElapsed = 0;
             score = 0;
 
@@ -80,10 +75,11 @@ namespace Group2FinalProject
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // Load all textures and fonts
-            shipSprite = Content.Load<Texture2D>("shipmodel1");  // Default ship model
+            shipSprite = Content.Load<Texture2D>("shipmodel1");
             asteroidSprite = Content.Load<Texture2D>("asteroid");
+            planetSprite1 = Content.Load<Texture2D>("Planet1");
+            planetSprite2 = Content.Load<Texture2D>("Planet2");
             spaceSprite = Content.Load<Texture2D>("space");
-            starSprite = Content.Load<Texture2D>("star");
             bulletSprite = Content.Load<Texture2D>("bullet");
 
             gameFont = Content.Load<SpriteFont>("spaceFont");
@@ -93,8 +89,12 @@ namespace Group2FinalProject
             asteroidSound = Content.Load<SoundEffect>("asteroidSound");
             shootingSound = Content.Load<SoundEffect>("shootingSound");
 
-            // Initialize player after textures have been loaded
+            // Initialize player
             player = new Ship(shipSprite, Content);
+
+            // Spawn two planets with initial health
+            planets.Add(new Planet(new Vector2(800, 200), 100, 100)); // Position (800, 200), health = 100
+            planets.Add(new Planet(new Vector2(1100, 600), 150, 120)); // Position (1100, 600), health = 150
         }
 
         protected override void Update(GameTime gameTime)
@@ -102,114 +102,92 @@ namespace Group2FinalProject
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            if (isGameOver || isGameWon)
+            if (isGameOver)
                 return;
 
+            // Player movement and shooting
             KeyboardState keyboardState = Keyboard.GetState();
-            bool boostActive = false;
+            player.MoveShip(keyboardState);
 
-            // Activate boost if available (score >= 5)
-            if (isBoostAvailable && keyboardState.IsKeyDown(Keys.Right) && keyboardState.IsKeyDown(Keys.Enter))
+            if (keyboardState.IsKeyDown(Keys.Space)) // Fire bullet
             {
-                boostActive = true;
+                bullets.Add(new Bullet(player.position, bulletSprite, 10)); // Bullet speed = 10
+                shootingSound.Play();
             }
 
-            player.MoveShip(keyboardState, boostActive);
+            // Update bullets
+            for (int i = 0; i < bullets.Count; i++)
+            {
+                bullets[i].Update();
 
-            secondsElapsed = controller.updateTime(gameTime);
+                // Remove bullets that go off-screen
+                if (bullets[i].position.X > _graphics.PreferredBackBufferWidth)
+                {
+                    bullets.RemoveAt(i);
+                    i--;
+                }
+            }
 
-            // Asteroid Update and Collision Handling
+            // Update asteroids
             for (int i = 0; i < asteroids.Count; i++)
             {
-                var asteroid = asteroids[i];
-                asteroid.updateAsteroid();
+                asteroids[i].Update();
 
-                if (controller.didCollisionHappen(player, asteroid))
+                // Check collisions with bullets
+                for (int j = 0; j < bullets.Count; j++)
                 {
-                    collisionSound.Play();
-                    score -= 3;
+                    if (Vector2.Distance(asteroids[i].position, bullets[j].position) < 30) // Collision range
+                    {
+                        asteroids[i].TakeDamage(25); // Reduce asteroid health by 25
+                        bullets.RemoveAt(j);
+                        j--;
 
-                    asteroids.RemoveAt(i);
-                    i--;
+                        if (asteroids[i].health <= 0)
+                        {
+                            asteroids.RemoveAt(i);
+                            i--;
+                            score += 10;
+                            asteroidSound.Play();
+                        }
+                    }
                 }
 
-                // Remove Asteroids When They Move Off-Screen
-                if (asteroid.position.X < 0)
+                // Remove asteroids that go off-screen
+                if (asteroids[i].position.X < 0)
                 {
                     asteroids.RemoveAt(i);
                     i--;
                 }
             }
 
-            // Star Generation and Score Handling
-            for (int i = 0; i < stars.Count; i++)
+            // Update planets
+            foreach (var planet in planets)
             {
-                var star = stars[i];
-                star.updateStar();
-
-                if (controller.didCollectHappen(player, star))
+                for (int j = 0; j < bullets.Count; j++)
                 {
-                    score += 3;
-                    stars.RemoveAt(i);
-                    i--;
+                    if (Vector2.Distance(planet.position, bullets[j].position) < 50) // Collision range
+                    {
+                        planet.TakeDamage(20); // Reduce planet health by 20
+                        bullets.RemoveAt(j);
+                        j--;
 
-                    continue;
-                }
-
-                // Remove Star When They Move Off-Screen
-                if (star.position.X < 0)
-                {
-                    stars.RemoveAt(i);
-                    i--;
+                        if (planet.health <= 0)
+                        {
+                            // Handle planet destruction logic here
+                            collisionSound.Play();
+                            isGameOver = true; // Game over if a planet is destroyed
+                        }
+                    }
                 }
             }
 
+            // Spawn new asteroids
             elapsedTime += gameTime.ElapsedGameTime;
-            starElapsedTime += gameTime.ElapsedGameTime;
-
-            if (secondsElapsed >= 30)
-            {
-                if (score > 0)
-                {
-                    isGameWon = true;
-                    controller.gameWinEndScript(score);
-                }
-                else if (score <= 0)
-                {
-                    isGameOver = true;
-                    controller.gameEndScript();
-                }
-                return;
-            }
-
-            // Asteroids Spawn
             if (elapsedTime.TotalSeconds >= asteroidSpawnInterval)
             {
                 SpawnAsteroid();
                 elapsedTime = TimeSpan.Zero;
             }
-
-            // Star Spawn
-            if (starElapsedTime.TotalSeconds >= starSpawnInterval)
-            {
-                SpawnStar();
-                starElapsedTime = TimeSpan.Zero;
-            }
-
-            HandleStarCollection();
-
-            // Upgrade player ship based on score
-            if (score >= 10)
-            {
-                // Upgrade to model 2 with speed 3, radius 25
-                player.UpgradeShip(3, 25, "ShipModel2");
-            }
-            if (score >= 20)
-            {
-                // Upgrade to model 3 with speed 4, radius 30
-                player.UpgradeShip(4, 30, "ShipModel3");
-            }
-
 
             base.Update(gameTime);
         }
@@ -217,43 +195,12 @@ namespace Group2FinalProject
         private void SpawnAsteroid()
         {
             float x = _graphics.PreferredBackBufferWidth;
-            float y = randomAsteroids.Next(0, _graphics.PreferredBackBufferHeight);
+            float y = randomGenerator.Next(0, _graphics.PreferredBackBufferHeight);
 
-            int speed = randomAsteroids.Next(2, 6);
-            Asteroid newAsteroid = new Asteroid(speed) { position = new Vector2(x, y) };
+            int speed = randomGenerator.Next(2, 6);
+            int health = randomGenerator.Next(50, 100); // Random health for asteroids
+            Asteroid newAsteroid = new Asteroid(speed, health) { position = new Vector2(x, y) };
             asteroids.Add(newAsteroid);
-        }
-
-        private void SpawnStar()
-        {
-            // Set stars to move from right to left across the screen
-            float x = _graphics.PreferredBackBufferWidth;
-            float y = randomStars.Next(0, _graphics.PreferredBackBufferHeight);
-
-            int speed = randomStars.Next(1, 3);
-            Star newStar = new Star(speed) { position = new Vector2(x, y) };
-            stars.Add(newStar);
-        }
-
-        private void HandleStarCollection()
-        {
-            for (int i = 0; i < stars.Count; i++)
-            {
-                var star = stars[i];
-
-                if (Vector2.Distance(player.position, star.position) < 30) // Star Collection Range
-                {
-                    score += star.value;
-
-                    stars.RemoveAt(i);
-                    i--;
-
-                    if (score >= 5)
-                    {
-                        isBoostAvailable = true;  // Boost becomes available after score reaches 5
-                    }
-                }
-            }
         }
 
         protected override void Draw(GameTime gameTime)
@@ -263,34 +210,34 @@ namespace Group2FinalProject
             _spriteBatch.Begin();
 
             _spriteBatch.Draw(spaceSprite, new Vector2(0, 0), Color.White);
-            _spriteBatch.Draw(shipSprite, new Vector2(player.position.X - shipSprite.Width / 2, player.position.Y - shipSprite.Height / 2), Color.White);
 
-            // Draw stars
-            foreach (var star in stars)
+            // Draw player ship
+            player.Draw(_spriteBatch);
+
+            // Draw bullets
+            foreach (var bullet in bullets)
             {
-                _spriteBatch.Draw(starSprite, new Vector2(star.position.X - starSprite.Width / 2, star.position.Y - starSprite.Height / 2), Color.White);
+                bullet.Draw(_spriteBatch);
             }
 
-            // Draw asteroids
+            // Draw asteroids and their health bars
             foreach (var asteroid in asteroids)
             {
-                _spriteBatch.Draw(asteroidSprite, new Vector2(asteroid.position.X - asteroidSprite.Width / 2, asteroid.position.Y - asteroidSprite.Height / 2), Color.White);
+                asteroid.Draw(_spriteBatch, asteroidSprite);
+            }
+
+            // Draw planets and their health bars
+            foreach (var planet in planets)
+            {
+                planet.Draw(_spriteBatch, planetSprite1);
             }
 
             // Draw score
-            _spriteBatch.DrawString(timerFont, "Score: " + score, new Vector2(_graphics.PreferredBackBufferWidth / 2, 10), Color.White);
+            _spriteBatch.DrawString(timerFont, "Score: " + score, new Vector2(20, 20), Color.White);
 
-            // Draw timer
-            _spriteBatch.DrawString(timerFont, "Time: " + secondsElapsed, new Vector2(_graphics.PreferredBackBufferWidth / 2, 30), Color.White);
-
-            // Display game over or win message
             if (isGameOver)
             {
-                _spriteBatch.DrawString(gameFont, controller.gameEndScript(), new Vector2(_graphics.PreferredBackBufferWidth / 4 - 100, _graphics.PreferredBackBufferHeight / 2), Color.White);
-            }
-            else if (isGameWon)
-            {
-                _spriteBatch.DrawString(gameFont, controller.gameWinEndScript(score), new Vector2(_graphics.PreferredBackBufferWidth / 4 - 100, _graphics.PreferredBackBufferHeight / 2), Color.White);
+                _spriteBatch.DrawString(gameFont, "Game Over!", new Vector2(500, 500), Color.Red);
             }
 
             _spriteBatch.End();
