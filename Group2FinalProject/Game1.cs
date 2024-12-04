@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 
-namespace Assignment3_EunmiKim
+namespace Group2FinalProject
 {
     public class Game1 : Game
     {
