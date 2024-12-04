@@ -140,7 +140,6 @@ namespace Group2FinalProject
 					stars.RemoveAt(i); 
 					i--; 
 
-
 					continue;
 				}
 
