@@ -3,30 +3,30 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Group2FinalProject
 {
-    internal class Bullet
-    {
-        public Vector2 Position { get; private set; } // Position of the bullet
-        private int speed = 10; // Speed at which the bullet moves
-        private Texture2D bulletTexture; // Texture to represent the bullet
+	public class Bullet
+	{
+		public Vector2 Position { get; private set; } // Make sure this is public and named Position
+		private int speed;
+		private Texture2D bulletTexture;
 
-        // Constructor to initialize bullet's position and texture
-        public Bullet(Vector2 startPosition, Texture2D texture)
-        {
-            Position = startPosition; // Set the initial position of the bullet
-            bulletTexture = texture; // Set the texture that will be used for rendering the bullet
-        }
+		// Constructor to initialize the bullet's position, texture, and speed
+		public Bullet(Vector2 startPosition, Texture2D texture, int bulletSpeed = 10)
+		{
+			Position = startPosition;
+			bulletTexture = texture;
+			speed = bulletSpeed;
+		}
 
-        // Update the bullet's position
-        public void Update()
-        {
-            // Move the bullet horizontally to the right
-            Position = new Vector2(Position.X + speed, Position.Y);
-        }
+		// Update the bullet's position based on speed
+		public void Update()
+		{
+			Position = new Vector2(Position.X + speed, Position.Y);
+		}
 
-        // Draw the bullet to the screen using the provided SpriteBatch
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            spriteBatch.Draw(bulletTexture, Position, Color.White); // Draw the bullet at its current position
-        }
-    }
+		// Draw the bullet to the screen using the provided SpriteBatch
+		public void Draw(SpriteBatch spriteBatch)
+		{
+			spriteBatch.Draw(bulletTexture, Position, Color.White);
+		}
+	}
 }

@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-
+using System;
 
 namespace Group2FinalProject
 {
@@ -32,17 +25,19 @@ namespace Group2FinalProject
 
         public void Draw(SpriteBatch spriteBatch, Texture2D texture)
         {
+            // Draw the asteroid
             spriteBatch.Draw(texture, new Rectangle((int)position.X, (int)position.Y, radius * 2, radius * 2), Color.White);
 
             // Draw health bar
-            var healthBarWidth = 50; // Fixed width for health bar
-            var healthBarHeight = 5;
-            var healthPercentage = Math.Max(0, health / 100f); // Health as a fraction
-            var healthBarColor = healthPercentage > 0.5f ? Color.Green : Color.Red;
+            int healthBarWidth = 50; // Fixed width for health bar
+            int healthBarHeight = 5;
+            float healthPercentage = Math.Max(0, health / 100f); // Health as a fraction
+            Color healthBarColor = Color.Lerp(Color.Red, Color.Green, healthPercentage); // Health bar color interpolates between red and green
 
+            // Draw the actual health bar
             spriteBatch.Draw(
-                texture: texture,
-                destinationRectangle: new Rectangle((int)position.X, (int)position.Y - 10, (int)(healthBarWidth * healthPercentage), healthBarHeight),
+                texture: new Texture2D(spriteBatch.GraphicsDevice, 1, 1),
+                destinationRectangle: new Rectangle((int)position.X, (int)position.Y - 15, (int)(healthBarWidth * healthPercentage), healthBarHeight),
                 color: healthBarColor
             );
         }

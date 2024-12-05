@@ -11,13 +11,13 @@ namespace Group2FinalProject
         private int baseSpeed = 2;  // Default speed
         private int speed;          // Dynamic speed based on upgrades
         private int radius = 20;    // Initial radius of the ship
-        private int upgradeLevel = 0;  // Tracks upgrade level
-        private int score = 0;      // Tracks score
+        public int UpgradeLevel { get; private set; } = 0;  // Tracks upgrade level (public getter)
+        private double bulletCooldownTime = 0.5;  // Bullet cooldown time, default for base ship
 
         private Texture2D shipTexture;  // For updating the ship texture on upgrade
         private ContentManager contentManager;  // Reference to the ContentManager
 
-        public Ship(Texture2D initialTexture, ContentManager content)
+        public Ship(Texture2D initialTexture, ContentManager content, int screenWidth, int screenHeight)
         {
             shipTexture = initialTexture;
             speed = baseSpeed;  // Start with the base speed
@@ -33,6 +33,12 @@ namespace Group2FinalProject
         public int GetRadius()
         {
             return this.radius;
+        }
+
+        // Getter for Bullet Cooldown Time
+        public double GetBulletCooldownTime()
+        {
+            return bulletCooldownTime;
         }
 
         // Handle movement with optional boost
@@ -60,29 +66,15 @@ namespace Group2FinalProject
         }
 
         // Method to check and apply upgrades based on the score
-        public void CheckUpgrade(int currentScore)
+        public void UpgradeShip(int newSpeed, int newRadius, string textureName, double newBulletCooldownTime)
         {
-            score = currentScore;
-
-            // Upgrade logic based on score thresholds
-            if (score >= 40 && upgradeLevel < 2)  // Upgrade to Level 3 at score 40
+            // Upgrade the ship's stats only if we are moving to a higher level
+            if (UpgradeLevel < 2)
             {
-                UpgradeShip(4, 30, "ShipModel3");  // Speed, radius, and texture for model 3
-            }
-            else if (score >= 20 && upgradeLevel < 1)  // Upgrade to Level 2 at score 20
-            {
-                UpgradeShip(3, 25, "ShipModel2");  // Speed, radius, and texture for model 2
-            }
-        }
-
-        // Upgrade the ship's stats
-        public void UpgradeShip(int newSpeed, int newRadius, string textureName)
-        {
-            if (upgradeLevel < 2)  // Prevent upgrading beyond Level 3
-            {
-                upgradeLevel++;  // Increment upgrade level
+                UpgradeLevel++;  // Increment upgrade level
                 speed = newSpeed; // Set new speed
                 radius = newRadius; // Set new radius
+                bulletCooldownTime = newBulletCooldownTime; // Set new bullet cooldown time
                 shipTexture = LoadTexture(textureName); // Change ship texture
             }
         }
@@ -97,6 +89,13 @@ namespace Group2FinalProject
         public Texture2D GetShipTexture()
         {
             return shipTexture;
+        }
+
+        // Draw method to render the ship
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            // Draw the ship at its current position with its texture
+            spriteBatch.Draw(shipTexture, position, Color.White);
         }
     }
 }

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace Group2FinalProject
 {
@@ -24,7 +18,13 @@ namespace Group2FinalProject
             this.size = size;
         }
 
-        public void Draw(SpriteBatch spriteBatch, Texture2D planetTexture, Texture2D healthBarTexture)
+        // Method to update the planet's position (for movement if needed)
+        public void Update(int speed)
+        {
+            position.X -= speed; // Move the planet to the left based on speed
+        }
+
+        public void Draw(SpriteBatch spriteBatch, Texture2D planetTexture)
         {
             // Draw the planet
             spriteBatch.Draw(
@@ -34,23 +34,28 @@ namespace Group2FinalProject
             );
 
             // Draw the health bar
-            int healthBarWidth = size; // Match width to the planet size
+            DrawHealthBar(spriteBatch);
+        }
+
+        private void DrawHealthBar(SpriteBatch spriteBatch)
+        {
+            int healthBarWidth = size; // Health bar width matches the planet's size
             int healthBarHeight = 5; // Fixed height for the health bar
             float healthPercentage = Math.Max(0, health / (float)MaxHealth);
 
-            // Determine health bar color
+            // Determine the health bar color based on the health percentage
             Color healthBarColor = Color.Lerp(Color.Red, Color.Green, healthPercentage);
 
-            // Draw the background of the health bar (gray to show max health area)
+            // Draw the background of the health bar (gray to show the full health area)
             spriteBatch.Draw(
-                healthBarTexture,
+                new Texture2D(spriteBatch.GraphicsDevice, 1, 1),
                 new Rectangle((int)position.X, (int)position.Y - 10, healthBarWidth, healthBarHeight),
                 Color.Gray
             );
 
             // Draw the actual health bar based on the current health percentage
             spriteBatch.Draw(
-                healthBarTexture,
+                new Texture2D(spriteBatch.GraphicsDevice, 1, 1),
                 new Rectangle((int)position.X, (int)position.Y - 10, (int)(healthBarWidth * healthPercentage), healthBarHeight),
                 healthBarColor
             );
@@ -59,7 +64,10 @@ namespace Group2FinalProject
         public void TakeDamage(int damage)
         {
             health -= damage;
-            if (health < 0) health = 0; // Ensure health doesn't go below zero
+            if (health < 0)
+            {
+                health = 0; // Ensure health doesn't go below zero
+            }
         }
 
         public bool IsDestroyed()
